@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+        }
+        canvas {
+            border: 2px solid #fff;
+            background-color: #000;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            margin: 0 10px;
+            cursor: pointer;
+            background-color: #0095DD;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #007bb5;
+        }
+        #menu {
+            display: none;
+            margin-top: 20px;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="score">Score: 0</div>
+    <div class="controls">
+        <button id="upBtn">Up</button>
+        <button id="downBtn">Down</button>
+    </div>
+    <div id="menu">
+        <button id="restartBtn">Restart</button>
+        <button id="exitBtn">Exit</button>
+    </div>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreDisplay = document.getElementById("score");
+        const menu = document.getElementById("menu");
+
+        let ballRadius = 10;
+        let x = canvas.width / 2;
+        let y = canvas.height / 2;
+        let dx = 2;
+        let dy = -2;
+        const paddleHeight = 75;
+        const paddleWidth = 10;
+        let paddleY = (canvas.height - paddleHeight) / 2;
+        
+        // Variables to keep track of button states
+        let upPressed = false;
+        let downPressed = false;
+        let score = 0;
+
+        document.getElementById("upBtn").addEventListener("mousedown", () => upPressed = true);
+        document.getElementById("downBtn").addEventListener("mousedown", () => downPressed = true);
+        document.getElementById("upBtn").addEventListener("mouseup", () => upPressed = false);
+        document.getElementById("downBtn").addEventListener("mouseup", () => downPressed = false);
+        
+        // Also handle mouse leave to stop moving when mouse leaves the button
+        document.getElementById("upBtn").addEventListener("mouseleave", () => upPressed = false);
+        document.getElementById("downBtn").addEventListener("mouseleave", () => downPressed = false);
+
+        document.getElementById("restartBtn").addEventListener("click", restartGame);
+        document.getElementById("exitBtn").addEventListener("click", () => alert("Exit functionality not implemented."));
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(0, paddleY, paddleWidth, paddleHeight);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawScore() {
+            scoreDisplay.innerText = `Score: ${score}`;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawPaddle();
+            drawScore();
+
+            if (y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
+                dy = -dy;
+            }
+
+            if (x + dx > canvas.width - ballRadius) {
+                dx = -dx;
+                score++; // Increase score when the ball hits the right wall
+            } else if (x + dx < ballRadius + paddleWidth && y > paddleY && y < paddleY + paddleHeight) {
+                dx = -dx;
+            } else if (x + dx < ballRadius) {
+                alert("GAME OVER");
+                showMenu();
+                return; // Stop the game loop
+            }
+
+            x += dx;
+            y += dy;
+
+            // Move paddle if buttons are pressed
+            if (upPressed && paddleY > 0) {
+                paddleY -= 7;
+            }
+            if (downPressed && paddleY < canvas.height - paddleHeight) {
+                paddleY += 7;
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        function showMenu() {
+            menu.style.display = "block";
+        }
+
+        function restartGame() {
+            x = canvas.width / 2;
+            y = canvas.height / 2;
+            dx = 2;
+            dy = -2;
+            paddleY = (canvas.height - paddleHeight) / 2;
+            score = 0; // Reset score
+            menu.style.display = "none"; // Hide menu
+            draw(); // Restart the game
+        }
+
+        draw();
+    </script>
+</body>
+</html>
